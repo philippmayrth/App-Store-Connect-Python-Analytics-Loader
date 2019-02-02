@@ -1,0 +1,2 @@
+Deprecated==1.2.4
+pymongo==3.7.2
