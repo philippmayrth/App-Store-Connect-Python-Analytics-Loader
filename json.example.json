@@ -1,0 +1,9 @@
+{
+    "vendorId": "0000000",
+    "db": {
+        "type": "mongo",
+        "connectionString": "mongodb://localhost:27017/",
+        "database": "AppStoreConnect",
+        "collection": "SalesDaily"
+    }
+}

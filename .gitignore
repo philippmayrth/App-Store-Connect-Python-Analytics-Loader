@@ -4,6 +4,9 @@ Reporter.jar
 # and due to it containing the access key we dont want to include this in git
 Reporter.properties
 
+# can contain secret keys and personaly identifiable data
+config.json
+
 # and well these are confidential reports so we dont want this in git either
 *.txt
 *.txt.gz

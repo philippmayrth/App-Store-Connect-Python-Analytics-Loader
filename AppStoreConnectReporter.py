@@ -106,18 +106,12 @@ class AppStoreConnectReporter:
         xmlString = result.stdout
         xmlString = xmlString.decode("utf-8")
         xmldoc = xml.etree.ElementTree.fromstring(xmlString)
-        try:
-            result.check_returncode()
-        except subprocess.CalledProcessError as ex:
+
+        if result.returncode != 0:
             errorCode = int(xmldoc[0].text)
             errorMessage = xmldoc[1].text
-            logging.exception(ex)
-            logging.debug("XML Returned by subprocess is: ")
-            logging.debug(xmlString)
             raise RaiseExceptionForCode(errorCode, withMessage=errorMessage)
-        finally:
-            return xmldoc
-
+        return xmldoc
 
 class AppStoreConnectSalesReporter(AppStoreConnectReporter):
     def __init__(self):
@@ -148,6 +142,7 @@ class AppStoreConnectSalesReporter(AppStoreConnectReporter):
         return [gzFileName, txtFileName]
 
     def getReportContentFromGZFile(self, path: str) -> str:
+        logging.debug("opening gzfile with path: "+str(path))
         with gzip.open(path) as f:
             return f.read().decode("utf-8")
 
@@ -214,6 +209,7 @@ class AppStoreConnectSalesReporter(AppStoreConnectReporter):
         output = self.executeCommand(buildCommand)
         gzFileName, _ = self.getReportFileNameFromCommandOutput(output)
         gzFilePath = gzFileName
+        logging.debug("Using gzFilePath: "+str(gzFilePath))
         reportCSV = self.getReportContentFromGZFile(gzFilePath)
         logging.debug("The report CSV:")
         logging.debug(reportCSV)
