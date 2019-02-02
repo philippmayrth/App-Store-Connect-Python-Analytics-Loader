@@ -1,0 +1,12 @@
+# due to copyright we dont want to include this in the git
+Reporter.jar
+
+# and due to it containing the access key we dont want to include this in git
+Reporter.properties
+
+# and well these are confidential reports so we dont want this in git either
+*.txt
+*.txt.gz
+
+venv
+.mypy_cache
