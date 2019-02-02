@@ -1,9 +1,12 @@
 from typing import *
+from AppStoreConnectReporterErrors import RaiseExceptionForCode
 import os
+import subprocess
 import datetime
 import calendar
 import enum
 import logging
+import xml.etree.ElementTree
 
 
 class SalesReportType(enum.Enum):
@@ -31,7 +34,12 @@ class AppStoreConnectReporter:
     Do not use this class direclty. Use a subclass instead.
     """
     def __init__(self):
-        self.baseCommand = f"java -jar {os.path.dirname(os.path.abspath(__file__))} m=Robot.XML"
+        directoryContainingScriptPath = os.path.dirname(os.path.abspath(__file__))
+        reporterFilePath = os.path.join(
+            directoryContainingScriptPath,
+            "Reporter.jar"
+        )
+        self.baseCommand = f'/usr/bin/java -jar {reporterFilePath} p=Reporter.properties m=Robot.XML '
 
     def buildFormatedDateFromDate(self, date: datetime.datetime, format: DateType) -> str:
         DATE_YYYYMMDD = date.strftime("%Y%m%d")
@@ -57,14 +65,27 @@ class AppStoreConnectReporter:
         build = f"{baseCommand}{name} {buildParameters}"
         return build
 
-    def executeCommand(self, command):
-        os.system(command)
+    def executeCommand(self, command: str) -> xml.etree.ElementTree:
+        """This command can raise the exception AppStoreConnectReporterError or a child exception."""
+        result = subprocess.run(command.split(" "), stdout=subprocess.PIPE)
+        xmlString = result.stdout
+        xmlString = xmlString.decode("utf-8")
+        xmldoc = xml.etree.ElementTree.fromstring(xmlString)
+        try:
+            result.check_returncode()
+        except subprocess.CalledProcessError as ex:
+            errorCode = int(xmldoc[0].text)
+            errorMessage = xmldoc[1].text
+            logging.exception(ex)
+            logging.debug("XML Returned by subprocess is: ")
+            logging.debug(xmlString)
+            raise RaiseExceptionForCode(errorCode, withMessage=errorMessage)
 
 
 class AppStoreConnectSalesReporter(AppStoreConnectReporter):
     def __init__(self):
         super().__init__()
-        self.baseCommand = f"{self.baseCommand} Sales."
+        self.baseCommand = f"{self.baseCommand}Sales."
 
     def getCommandForGetReport(self, vendorId: str, *, type: SalesReportType, subType: SalesReportSubType, dateType: DateType, date: datetime.datetime) -> str:
         command = "getReport"

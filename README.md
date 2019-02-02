@@ -28,7 +28,7 @@ pip install -r requirements.txt
 
 ## Testing the code
 ```
-
+python3 -m unittest
 ```
 
 # About Apple´s Reporter.jar
