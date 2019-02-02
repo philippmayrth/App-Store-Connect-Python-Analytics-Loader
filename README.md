@@ -39,7 +39,8 @@ Feel free to open an issue. We give out best to help you with anything related t
   - Add the API Token to ```Reporter.properties```
   - Rename ```config.example.json``` to ```config.json```
   - Enter your Apple VendorId in ```config.json``` (See Apples docuemtnation for Reporter.jar about how to get it)
-  - Setup dependencies ```bash
+  - Setup dependencies with this:
+```bash
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
