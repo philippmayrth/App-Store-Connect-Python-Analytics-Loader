@@ -7,6 +7,7 @@ import calendar
 import enum
 import logging
 import xml.etree.ElementTree
+import gzip
 
 
 class SalesReportType(enum.Enum):
@@ -80,6 +81,8 @@ class AppStoreConnectReporter:
             logging.debug("XML Returned by subprocess is: ")
             logging.debug(xmlString)
             raise RaiseExceptionForCode(errorCode, withMessage=errorMessage)
+        finally:
+            return xmldoc
 
 
 class AppStoreConnectSalesReporter(AppStoreConnectReporter):
@@ -101,6 +104,18 @@ class AppStoreConnectSalesReporter(AppStoreConnectReporter):
         buildCommand = self.buildCommand(command, parameters=commandParameters, baseCommand=self.baseCommand)
         return buildCommand
 
+    def getReportFileNameFromCommandOutput(self, xmlTag: xml.etree.ElementTree) -> List[str]:
+        """Returns the file name to the tar file as first item of the list and the name of the text file inside of the tar.gz file as second item."""
+        message = xmlTag[0].text
+        gzFileName = message.replace("Successfully downloaded ", "")
+        txtFileName = gzFileName[:-3]  # -3 to remove '.gz'
+        logging.debug("tarfilename: "+str(gzFileName))
+        return [gzFileName, txtFileName]
+
+    def getReportContentFromGZFile(self, path: str) -> str:
+        with gzip.open(path) as f:
+            return f.read()
+
     def getReport(self, vendorId: str, *, type: SalesReportType, subType: SalesReportSubType, dateType: DateType, date: datetime.datetime):
         buildCommand = self.getCommandForGetReport(
             vendorId=vendorId,
@@ -109,7 +124,15 @@ class AppStoreConnectSalesReporter(AppStoreConnectReporter):
             dateType=dateType,
             date=date
         )
-        self.executeCommand(buildCommand)
+        output = self.executeCommand(buildCommand)
+        gzFileName, _ = self.getReportFileNameFromCommandOutput(output)
+        reportCSV = self.getReportContentFromGZFile(gzFileName)
+        logging.debug("The report CSV:")
+        logging.debug(reportCSV)
+        # TODO:
+        #  - Access the file in this tar
+        #  - Parse it into named tuple
+        #  - Delete the tar file
 
 
 class AppStoreConnectFinancialReporter(AppStoreConnectReporter):

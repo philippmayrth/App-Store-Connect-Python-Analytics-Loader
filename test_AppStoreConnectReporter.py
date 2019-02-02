@@ -1,4 +1,5 @@
 import unittest
+import xml.etree.ElementTree
 from AppStoreConnectReporter import *
 
 
@@ -67,6 +68,23 @@ class AppStoreConnectSalesReporterTestCase(unittest.TestCase):
         )
         buildCommandStringShouldBe = f"{salesReporter.baseCommand}getReport {testVendorId}, {testType.value}, {testSubType.value}, {testDateType.value}, {str(testYear)}, 1_0"
         self.assertEqual(buildCommandString, buildCommandStringShouldBe)
+
+    def test_getReportFileNameFromCommandOutput(self):
+        testNameBase = "P_S_W_000000_20150208"
+        testFileNameGZ = f"{testNameBase}.txt.gz"
+        testFileNameTxt = f"{testNameBase}.txt"
+
+        testXMLString = f"""<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+            <Output>
+                <Message>Successfully downloaded {testFileNameGZ}</Message>
+            </Output>
+            """
+        testXMLTree = xml.etree.ElementTree.fromstring(testXMLString)
+        salesReporter = AppStoreConnectSalesReporter()
+        resultingGZFileName, resultTxtFileName = salesReporter.getReportFileNameFromCommandOutput(testXMLTree)
+        resultShouldIs = [resultingGZFileName, resultTxtFileName]
+        resultShouldBe = [testFileNameGZ, testFileNameTxt]
+        self.assertEqual(resultShouldBe, resultShouldIs)
 
 if __name__ == '__main__':
     unittest.main()
