@@ -85,9 +85,9 @@ def insertToMongoDBOverwritingEntireCollection(mongoconnection: str, database: s
     if document is not None and len(document) >= 1:  # dont insert an empty list as that would fail
         mongoCollection.insert_many(document)
 
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Load data from App Store Connect to a database.')
+    parser.add_argument('--yesterday-daily', help='Import daily data from yesterday.', action='store_true')
     parser.add_argument('--year', help='The year for the report.', type=int, default=datetime.datetime.now().year)
     parser.add_argument('--month', help='The month for the report.', type=int, default=1)
     parser.add_argument('--day', help='The day for the report.', type=int, default=1)
@@ -108,11 +108,17 @@ if __name__ == "__main__":
     with open("config.json", "r") as f:
         configObject = json.JSONDecoder().decode(f.read())
 
-    date = datetime.datetime(
-        year=shellParameters.year,
-        month=shellParameters.month,
-        day=shellParameters.day
-    )
+    date = None
+    if shellParameters.yesterday_daily is True:
+        today = datetime.datetime.now()
+        yesterday = today - datetime.timedelta(days=1)
+        date = yesterday
+    else:
+        date = datetime.datetime(
+            year=shellParameters.year,
+            month=shellParameters.month,
+            day=shellParameters.day
+        )
     logging.debug("Using date: "+str(date))
 
     reportDocument = getReportAsDocumentForMongo(
