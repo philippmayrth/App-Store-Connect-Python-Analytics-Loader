@@ -12,14 +12,15 @@ Supportet Databases:
 
 ```bash
 $ python3 main.py --help
-usage: main.py [-h] [--year YEAR] [--month MONTH] [--day DAY]
-               [--period {yearly,monthly,weekly,daily}] [--log-level {DEBUG}]
-               [--print] [--dry-run]
+usage: main.py [-h] [--yesterday-daily] [--year YEAR] [--month MONTH]
+               [--day DAY] [--period {yearly,monthly,weekly,daily}]
+               [--log-level {DEBUG}] [--print] [--dry-run]
 
 Load data from App Store Connect to a database.
 
 optional arguments:
   -h, --help            show this help message and exit
+  --yesterday-daily     Import daily data from yesterday.
   --year YEAR           The year for the report.
   --month MONTH         The month for the report.
   --day DAY             The day for the report.
