@@ -31,6 +31,10 @@ pip install -r requirements.txt
 python3 -m unittest
 ```
 
+# Timezones
+This framework does its best to handle timezones. However there are limits, mainly because Apple does not tell us the timezones of the dates its more of a educated guess.
+See also: https://forums.developer.apple.com/thread/47211
+
 # About Apple´s Reporter.jar
 This should also run on PC (everything with a Java runtime)
 https://help.apple.com/itc/contentreporterguide/en.lproj/static.html

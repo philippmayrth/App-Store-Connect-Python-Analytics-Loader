@@ -1,4 +1,5 @@
 from typing import *
+from collections import namedtuple
 from AppStoreConnectReporterErrors import RaiseExceptionForCode
 import os
 import subprocess
@@ -8,6 +9,7 @@ import enum
 import logging
 import xml.etree.ElementTree
 import gzip
+import csv
 
 
 class SalesReportType(enum.Enum):
@@ -28,6 +30,38 @@ class DateType(enum.Enum):
     weekly = "Weekly"
     monthly = "Monthly"
     yearly = "Yearly"
+
+
+class AppSalesReportItem(NamedTuple):
+    Provider: str
+    ProviderCountry: str
+    SKU: str
+    Developer: str
+    Title: str
+    Version: str
+    ProductTypeIdentifier: str
+    Units: int
+    DeveloperProceeds: str
+    BeginDate: datetime.datetime
+    EndDate: datetime.datetime
+    CustomerCurrency: str
+    CountryCode: str
+    CurrencyOfProceeds: str
+    AppleIdentifier: str
+    CustomerPrice: float
+    PromoCode: str
+    ParentIdentifier: str
+    Subscription: str
+    Period: str
+    Category: str
+    CMB: str
+    Device: str
+    SupportedPlatforms: str
+    ProceedsReason: str
+    PreservedPricing: str
+    Client: str
+    OrderType: str
+
 
 
 class AppStoreConnectReporter:
@@ -89,6 +123,7 @@ class AppStoreConnectSalesReporter(AppStoreConnectReporter):
     def __init__(self):
         super().__init__()
         self.baseCommand = f"{self.baseCommand}Sales."
+        self.keepDownloadedFilesAfterProcessing = False
 
     def getCommandForGetReport(self, vendorId: str, *, type: SalesReportType, subType: SalesReportSubType, dateType: DateType, date: datetime.datetime) -> str:
         command = "getReport"
@@ -114,7 +149,59 @@ class AppStoreConnectSalesReporter(AppStoreConnectReporter):
 
     def getReportContentFromGZFile(self, path: str) -> str:
         with gzip.open(path) as f:
-            return f.read()
+            return f.read().decode("utf-8")
+
+    def csvRowToAppSalesReportItem(self, csvRowItem: List[Any]) -> AppSalesReportItem:
+        item = csvRowItem
+        datetimeParseFormatString = "%m/%d/%Y"
+        beginDate = datetime.datetime.strptime(item[9], datetimeParseFormatString)
+        endDate = datetime.datetime.strptime(item[10], datetimeParseFormatString)
+
+        return AppSalesReportItem(
+            Provider=item[0],
+            ProviderCountry=item[1],
+            SKU=item[2],
+            Developer=item[3],
+            Title=item[4],
+            Version=item[5],
+            ProductTypeIdentifier=item[6],
+            Units=item[7],
+            DeveloperProceeds=item[8],
+            BeginDate=beginDate,
+            EndDate=endDate,
+            CustomerCurrency=item[11],
+            CountryCode=item[12],
+            CurrencyOfProceeds=item[13],
+            AppleIdentifier=item[14],
+            CustomerPrice=item[15],
+            PromoCode=item[16],
+            ParentIdentifier=item[17],
+            Subscription=item[18],
+            Period=item[19],
+            Category=item[20],
+            CMB=item[21],
+            Device=item[22],
+            SupportedPlatforms=item[23],
+            ProceedsReason=item[24],
+            PreservedPricing=item[25],
+            Client=item[26],
+            OrderType=item[27]
+        )
+
+    def getReportNamedTupelFromCSV(self, content: str, removeHeader: bool = False) -> List[AppSalesReportItem]:
+        csvLinesArray = content.splitlines()
+        if removeHeader is True:
+            del csvLinesArray[0]  # Remove the CSV Header
+        csvReader = csv.reader(
+            csvLinesArray,
+            delimiter="\t"
+        )
+        salesReport = []
+        for item in csvReader:
+            salesReport.append(
+                self.csvRowToAppSalesReportItem(item)
+            )
+        return salesReport
 
     def getReport(self, vendorId: str, *, type: SalesReportType, subType: SalesReportSubType, dateType: DateType, date: datetime.datetime):
         buildCommand = self.getCommandForGetReport(
@@ -126,13 +213,13 @@ class AppStoreConnectSalesReporter(AppStoreConnectReporter):
         )
         output = self.executeCommand(buildCommand)
         gzFileName, _ = self.getReportFileNameFromCommandOutput(output)
-        reportCSV = self.getReportContentFromGZFile(gzFileName)
+        gzFilePath = gzFileName
+        reportCSV = self.getReportContentFromGZFile(gzFilePath)
         logging.debug("The report CSV:")
         logging.debug(reportCSV)
-        # TODO:
-        #  - Access the file in this tar
-        #  - Parse it into named tuple
-        #  - Delete the tar file
+        if self.keepDownloadedFilesAfterProcessing is False:
+            os.remove(gzFilePath)
+        return self.getReportNamedTupelFromCSV(reportCSV, removeHeader=True)
 
 
 class AppStoreConnectFinancialReporter(AppStoreConnectReporter):
