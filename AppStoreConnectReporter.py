@@ -41,7 +41,6 @@ class AppSalesReportExtrapolatedDetailItem(NamedTuple):
     Title: str = None
     Version: str = None
     ProductTypeIdentifier: str = None
-    DeveloperProceeds: str = None
     BeginDate: datetime.datetime = None
     EndDate: datetime.datetime = None
     CustomerCurrency: str = None
@@ -268,7 +267,6 @@ class AppStoreConnectSalesReporter(AppStoreConnectReporter):
                     Title=reportItem.Title,
                     Version=reportItem.Version,
                     ProductTypeIdentifier=reportItem.ProductTypeIdentifier,
-                    DeveloperProceeds=reportItem.DeveloperProceeds,
                     BeginDate=reportItem.BeginDate,
                     EndDate=reportItem.EndDate,
                     CustomerCurrency=reportItem.CustomerCurrency,

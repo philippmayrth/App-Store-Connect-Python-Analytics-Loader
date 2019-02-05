@@ -17,7 +17,6 @@ def AppSalesReportItemToDictAsPreparationForDocumentConvertion(item: Union[AppSa
         "Title": item.Title,
         "Version": item.Version,
         "ProductTypeIdentifier": item.ProductTypeIdentifier,
-        "DeveloperProceeds": item.DeveloperProceeds,
         "BeginDate": item.BeginDate.strftime(formatTimeString),
         "EndDate": item.EndDate.strftime(formatTimeString),
         "CustomerCurrency": item.CustomerCurrency,
@@ -40,6 +39,7 @@ def AppSalesReportItemToDictAsPreparationForDocumentConvertion(item: Union[AppSa
         newItem["ProceedsReason"] = item.ProceedsReason
         newItem["PreservedPricing"] = item.PreservedPricing
         newItem["CustomerPrice"] = item.CustomerPrice
+        newItem["DeveloperProceeds"] = item.DeveloperProceeds
 
     return newItem
 
