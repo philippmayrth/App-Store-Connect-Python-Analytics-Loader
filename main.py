@@ -5,11 +5,11 @@ from AppStoreConnectReporter import *
 from AppStoreConnectReporterErrors import *
 
 
-def AppSalesReportItemToDictAsPreparationForDocumentConvertion(item: AppSalesReportItem) -> Dict[str, Any]:
+def AppSalesReportItemToDictAsPreparationForDocumentConvertion(item: Union[AppSalesReportItem, AppSalesReportExtrapolatedDetailItem]) -> Dict[str, Any]:
     logging.debug("Type of item: "+str(type(item)))
     logging.debug("item is: "+str(item))
     formatTimeString = "%Y-%m-%d"
-    return {
+    newItem = {
         "Provider": item.Provider,
         "ProviderCountry": item.ProviderCountry,
         "SKU": item.SKU,
@@ -17,7 +17,6 @@ def AppSalesReportItemToDictAsPreparationForDocumentConvertion(item: AppSalesRep
         "Title": item.Title,
         "Version": item.Version,
         "ProductTypeIdentifier": item.ProductTypeIdentifier,
-        "Units": item.Units,
         "DeveloperProceeds": item.DeveloperProceeds,
         "BeginDate": item.BeginDate.strftime(formatTimeString),
         "EndDate": item.EndDate.strftime(formatTimeString),
@@ -25,7 +24,6 @@ def AppSalesReportItemToDictAsPreparationForDocumentConvertion(item: AppSalesRep
         "CountryCode": item.CountryCode,
         "CurrencyOfProceeds": item.CurrencyOfProceeds,
         "AppleIdentifier": item.AppleIdentifier,
-        "CustomerPrice": item.CustomerPrice,
         "PromoCode": item.PromoCode,
         "ParentIdentifier": item.ParentIdentifier,
         "Subscription": item.Subscription,
@@ -34,13 +32,19 @@ def AppSalesReportItemToDictAsPreparationForDocumentConvertion(item: AppSalesRep
         "CMB": item.CMB,
         "Device": item.Device,
         "SupportedPlatforms": item.SupportedPlatforms,
-        "ProceedsReason": item.ProceedsReason,
-        "PreservedPricing": item.PreservedPricing,
         "Client": item.Client,
         "OrderType": item.OrderType
     }
+    if type(item) == AppSalesReportItem:
+        newItem["Units"] = item.Units
+        newItem["ProceedsReason"] = item.ProceedsReason
+        newItem["PreservedPricing"] = item.PreservedPricing
+        newItem["CustomerPrice"] = item.CustomerPrice
 
-def getReportAsDocumentForMongo(date: datetime.datetime, *, period: DateType, forVendorId: str) -> List[Dict[str, Any]]:
+    return newItem
+
+
+def getReport(date: datetime.datetime, *, period: DateType, forVendorId: str) -> List[AppSalesReportItem]:
     try:
         report = AppStoreConnectSalesReporter().getReport(
             vendorId=forVendorId,
@@ -49,11 +53,7 @@ def getReportAsDocumentForMongo(date: datetime.datetime, *, period: DateType, fo
             dateType=period,
             date=date
         )
-        reportDictList = []
-        for item in report:
-            reportDict = AppSalesReportItemToDictAsPreparationForDocumentConvertion(item)
-            reportDictList.append(reportDict)
-        return reportDictList
+        return report
 
     except InvalidVendor as ex:
         logging.exception(ex)
@@ -73,6 +73,15 @@ def getReportAsDocumentForMongo(date: datetime.datetime, *, period: DateType, fo
     except Exception as ex:
         logging.exception(ex)
         raise ex
+
+
+def getReportAsDocumentForMongo(report: List[AppSalesReportItem]) -> List[Dict[str, Any]]:
+    reportDictList = []
+    for item in report:
+        reportDict = AppSalesReportItemToDictAsPreparationForDocumentConvertion(item)
+        reportDictList.append(reportDict)
+    return reportDictList
+
 
 def insertToMongoDBOverwritingEntireCollection(mongoconnection: str, database: str, collection: str, document: List):
     mongoClient = pymongo.MongoClient(mongoconnection)
@@ -118,14 +127,25 @@ if __name__ == "__main__":
         )
     logging.debug("Using date: "+str(date))
 
-    reportDocument = getReportAsDocumentForMongo(
+    report = getReport(
         date,
         period=DateType[shellParameters.period],
         forVendorId=configObject["vendorId"]
     )
 
+    reportSummaryAsMongoDocument = getReportAsDocumentForMongo(report)
+
+    also_extrapolate_detail = configObject["also_extrapolate_detail"]
+    if also_extrapolate_detail == True:
+        reportExtapolatedDetail = AppStoreConnectSalesReporter.extrapolateDetailReportFromAppleSummaryFormat(report)
+        reportDetailAsMongoDocument = getReportAsDocumentForMongo(reportExtapolatedDetail)
+
     if shellParameters.print is True:
-        print(reportDocument)
+        print("Summary:")
+        print(reportSummaryAsMongoDocument)
+    if shellParameters.print is True and also_extrapolate_detail:
+        print("Detail:")
+        print(reportDetailAsMongoDocument)
 
     if shellParameters.dry_run is False:
         logging.debug("Writing to Database.")
@@ -133,6 +153,13 @@ if __name__ == "__main__":
         insertToMongoDBOverwritingEntireCollection(
             mongoconnection=configDB["connectionString"],
             database=configDB["database"],
-            collection=configDB["collection"],
-            document=reportDocument
+            collection=configDB["collection_summary"],
+            document=reportSummaryAsMongoDocument
+        )
+        if also_extrapolate_detail:
+            insertToMongoDBOverwritingEntireCollection(
+            mongoconnection=configDB["connectionString"],
+            database=configDB["database"],
+            collection=configDB["collection_detail_extrapolated"],
+            document=reportDetailAsMongoDocument
         )

@@ -86,5 +86,28 @@ class AppStoreConnectSalesReporterTestCase(unittest.TestCase):
         resultShouldBe = [testFileNameGZ, testFileNameTxt]
         self.assertEqual(resultShouldBe, resultShouldIs)
 
+
+class ExtrapolateDetailReportFromAppleSummaryFormatTestCase(unittest.TestCase):
+    def test_createsOneItemForEeachUnit(self):
+        testAmountOfUnits = 2
+        mockAppleSalesSummaryFormat = [
+            AppSalesReportItem(
+                Title = "TestApp#1",
+                Units = testAmountOfUnits
+            )
+        ]
+        result = AppStoreConnectSalesReporter.extrapolateDetailReportFromAppleSummaryFormat(mockAppleSalesSummaryFormat)
+        self.assertEqual(testAmountOfUnits, len(result))
+
+    def test_retunsSameAsInputIfNotMultipleUnitsInItem(self):
+        mockAppleSalesSummaryFormat = [
+            AppSalesReportItem(
+                Title = "TestApp#1",
+                Units = 1
+            )
+        ]
+        result = AppStoreConnectSalesReporter.extrapolateDetailReportFromAppleSummaryFormat(mockAppleSalesSummaryFormat)
+        self.assertEqual(len(mockAppleSalesSummaryFormat), len(result))
+
 if __name__ == '__main__':
     unittest.main()

@@ -1,9 +1,11 @@
 {
-    "vendorId": "0000000",
+    "vendorId": "00000",
+    "also_extrapolate_detail": true,
     "db": {
         "type": "mongo",
-        "connectionString": "mongodb://localhost:27017/",
+        "connectionString": "mongodb://localhost:32768/",
         "database": "AppStoreConnect",
-        "collection": "SalesDaily"
+        "collection_summary": "SalesSummaryDaily",
+        "collection_detail_extrapolated": "SalesExtrapolatedDetailDaily"
     }
 }

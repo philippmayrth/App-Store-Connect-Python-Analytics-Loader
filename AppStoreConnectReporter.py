@@ -32,37 +32,63 @@ class DateType(enum.Enum):
     yearly = "Yearly"
 
 
+class AppSalesReportExtrapolatedDetailItem(NamedTuple):
+    """Similar to AppSalesReportItem but without the fields that are hard or imposible to correcty extrapolate from AppSalesReportItem with AppSalesReportItem.Units > 1."""
+    Provider: str = None
+    ProviderCountry: str = None
+    SKU: str = None
+    Developer: str = None
+    Title: str = None
+    Version: str = None
+    ProductTypeIdentifier: str = None
+    DeveloperProceeds: str = None
+    BeginDate: datetime.datetime = None
+    EndDate: datetime.datetime = None
+    CustomerCurrency: str = None
+    CountryCode: str = None
+    CurrencyOfProceeds: str = None
+    AppleIdentifier: str = None
+    PromoCode: str = None
+    ParentIdentifier: str = None
+    Subscription: str = None
+    Period: str = None
+    Category: str = None
+    CMB: str = None
+    Device: str = None
+    SupportedPlatforms: str = None
+    Client: str = None
+    OrderType: str = None
+
 class AppSalesReportItem(NamedTuple):
-    Provider: str
-    ProviderCountry: str
-    SKU: str
-    Developer: str
-    Title: str
-    Version: str
-    ProductTypeIdentifier: str
     Units: int
-    DeveloperProceeds: str
-    BeginDate: datetime.datetime
-    EndDate: datetime.datetime
-    CustomerCurrency: str
-    CountryCode: str
-    CurrencyOfProceeds: str
-    AppleIdentifier: str
-    CustomerPrice: float
-    PromoCode: str
-    ParentIdentifier: str
-    Subscription: str
-    Period: str
-    Category: str
-    CMB: str
-    Device: str
-    SupportedPlatforms: str
-    ProceedsReason: str
-    PreservedPricing: str
-    Client: str
-    OrderType: str
+    CustomerPrice: float = None
+    PreservedPricing: str = None
+    ProceedsReason: str = None
 
-
+    Provider: str = None
+    ProviderCountry: str = None
+    SKU: str = None
+    Developer: str = None
+    Title: str = None
+    Version: str = None
+    ProductTypeIdentifier: str = None
+    DeveloperProceeds: str = None
+    BeginDate: datetime.datetime = None
+    EndDate: datetime.datetime = None
+    CustomerCurrency: str = None
+    CountryCode: str = None
+    CurrencyOfProceeds: str = None
+    AppleIdentifier: str = None
+    PromoCode: str = None
+    ParentIdentifier: str = None
+    Subscription: str = None
+    Period: str = None
+    Category: str = None
+    CMB: str = None
+    Device: str = None
+    SupportedPlatforms: str = None
+    Client: str = None
+    OrderType: str = None
 
 class AppStoreConnectReporter:
     """
@@ -227,6 +253,41 @@ class AppStoreConnectSalesReporter(AppStoreConnectReporter):
         if self.keepDownloadedFilesAfterProcessing is False:
             os.remove(gzFilePath)
         return self.getReportNamedTupelFromCSV(reportCSV, removeHeader=True)
+
+    @classmethod
+    def extrapolateDetailReportFromAppleSummaryFormat(cls, appleFormat: List[AppSalesReportItem]) -> List[AppSalesReportExtrapolatedDetailItem]:
+        detailFormat = []
+        for reportItem in appleFormat:
+            for _ in range(0, int(reportItem.Units)):  # loop over all units
+                # Create a new item for each time the unit was sold.
+                newReportItem = AppSalesReportExtrapolatedDetailItem(
+                    Provider=reportItem.Provider,
+                    ProviderCountry=reportItem.ProviderCountry,
+                    SKU=reportItem.SKU,
+                    Developer=reportItem.Developer,
+                    Title=reportItem.Title,
+                    Version=reportItem.Version,
+                    ProductTypeIdentifier=reportItem.ProductTypeIdentifier,
+                    DeveloperProceeds=reportItem.DeveloperProceeds,
+                    BeginDate=reportItem.BeginDate,
+                    EndDate=reportItem.EndDate,
+                    CustomerCurrency=reportItem.CustomerCurrency,
+                    CountryCode=reportItem.CountryCode,
+                    CurrencyOfProceeds=reportItem.CurrencyOfProceeds,
+                    AppleIdentifier=reportItem.AppleIdentifier,
+                    PromoCode=reportItem.PromoCode,
+                    ParentIdentifier=reportItem.ParentIdentifier,
+                    Subscription=reportItem.Subscription,
+                    Period=reportItem.Period,
+                    Category=reportItem.Category,
+                    CMB=reportItem.CMB,
+                    Device=reportItem.Device,
+                    SupportedPlatforms=reportItem.SupportedPlatforms,
+                    Client=reportItem.Client,
+                    OrderType=reportItem.OrderType
+                )
+                detailFormat.append(newReportItem)
+        return detailFormat
 
 
 class AppStoreConnectFinancialReporter(AppStoreConnectReporter):
