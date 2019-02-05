@@ -73,6 +73,8 @@ def getReport(date: datetime.datetime, *, period: DateType, forVendorId: str) ->
     except Exception as ex:
         logging.exception(ex)
         raise ex
+    finally:
+        return []
 
 
 def getReportAsDocumentForMongo(report: List[AppSalesReportItem]) -> List[Dict[str, Any]]:
