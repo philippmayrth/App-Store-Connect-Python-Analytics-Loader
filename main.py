@@ -8,7 +8,6 @@ from AppStoreConnectReporterErrors import *
 def AppSalesReportItemToDictAsPreparationForDocumentConvertion(item: Union[AppSalesReportItem, AppSalesReportExtrapolatedDetailItem]) -> Dict[str, Any]:
     logging.debug("Type of item: "+str(type(item)))
     logging.debug("item is: "+str(item))
-    formatTimeString = "%Y-%m-%d"
     newItem = {
         "Provider": item.Provider,
         "ProviderCountry": item.ProviderCountry,
@@ -17,8 +16,8 @@ def AppSalesReportItemToDictAsPreparationForDocumentConvertion(item: Union[AppSa
         "Title": item.Title,
         "Version": item.Version,
         "ProductTypeIdentifier": item.ProductTypeIdentifier,
-        "BeginDate": item.BeginDate.strftime(formatTimeString),
-        "EndDate": item.EndDate.strftime(formatTimeString),
+        "BeginDate": item.BeginDate,
+        "EndDate": item.EndDate,
         "CustomerCurrency": item.CustomerCurrency,
         "CountryCode": item.CountryCode,
         "CurrencyOfProceeds": item.CurrencyOfProceeds,
