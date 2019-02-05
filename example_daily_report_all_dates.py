@@ -7,10 +7,9 @@ def loadReportFor(date: datetime):
     if date.year == 2019 and date.month > 1:
         # there wont be any data for this yet anyway
         return
-    cmd = f"python3 mainNOW.py --year {date.year} --month {date.month} --day {date.day} --period daily"
+    cmd = f"python3 main.py --year {date.year} --month {date.month} --day {date.day} --period daily"
     print("Loading report for date: "+str(date)+" with command: "+cmd)
     os.system(cmd)
-
 
 for year in [2018, 2019]:
     for month in range(1, 13):
