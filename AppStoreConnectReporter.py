@@ -100,8 +100,11 @@ class AppStoreConnectReporter:
         build = f"{baseCommand}{name} {buildParameters}"
         return build
 
-    def executeCommand(self, command: str) -> xml.etree.ElementTree:
-        """This command can raise the exception AppStoreConnectReporterError or a child exception."""
+    def executeCommand(self, command: str): # Returnes ElementTree or None
+        """This command can raise the exception AppStoreConnectReporterError or a child exception.
+        Returns xml.etree.ElementTree or
+        Returns None type for ERROR_CODE_FOR_NoSalesOnSpesifiedDate
+        """
         result = subprocess.run(command.split(" "), stdout=subprocess.PIPE)
         xmlString = result.stdout
         xmlString = xmlString.decode("utf-8")
@@ -110,6 +113,9 @@ class AppStoreConnectReporter:
         if result.returncode != 0:
             errorCode = int(xmldoc[0].text)
             errorMessage = xmldoc[1].text
+            ERROR_CODE_FOR_NoSalesOnSpesifiedDate = 213
+            if errorCode == ERROR_CODE_FOR_NoSalesOnSpesifiedDate:
+                return None
             raise RaiseExceptionForCode(errorCode, withMessage=errorMessage)
         return xmldoc
 
@@ -198,7 +204,10 @@ class AppStoreConnectSalesReporter(AppStoreConnectReporter):
             )
         return salesReport
 
-    def getReport(self, vendorId: str, *, type: SalesReportType, subType: SalesReportSubType, dateType: DateType, date: datetime.datetime):
+    def getReport(self, vendorId: str, *, type: SalesReportType, subType: SalesReportSubType, dateType: DateType, date: datetime.datetime) -> List[AppSalesReportItem]:
+        """
+        Returnes an empty list if there were no sales for the spesified criteria.
+        """
         buildCommand = self.getCommandForGetReport(
             vendorId=vendorId,
             type=type,
@@ -207,6 +216,8 @@ class AppStoreConnectSalesReporter(AppStoreConnectReporter):
             date=date
         )
         output = self.executeCommand(buildCommand)
+        if output is None:
+            return []
         gzFileName, _ = self.getReportFileNameFromCommandOutput(output)
         gzFilePath = gzFileName
         logging.debug("Using gzFilePath: "+str(gzFilePath))

@@ -122,10 +122,6 @@ class UnexpectedError(AppStoreConnectReporterError):
     pass
 
 
-class NoSalesOnSpesifiedDate(AppStoreConnectReporterError):
-    pass
-
-
 class AmbiguousAccountNumber(AppStoreConnectReporterError):
     pass
 
@@ -183,7 +179,6 @@ EXCEPTION_FOR_CODE = {
     210: ReportNotAvailableYet,
     211: ReportNotAvailableYetUnexpected,
     212: UnexpectedError,
-    213: NoSalesOnSpesifiedDate,
     214: AmbiguousAccountNumber,
     215: InvalidAccountNumber,
     216: InvalidAccountNumber,

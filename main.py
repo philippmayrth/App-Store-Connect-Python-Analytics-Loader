@@ -70,9 +70,6 @@ def getReportAsDocumentForMongo(date: datetime.datetime, *, period: DateType, fo
     except ReportNotAvailableYetUnexpected as ex:
         logging.exception(ex)
 
-    except NoSalesOnSpesifiedDate as ex:
-        logging.exception(ex)
-
     except Exception as ex:
         logging.exception(ex)
         raise ex
