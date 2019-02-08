@@ -62,9 +62,20 @@ Just a few things to consider:
   - Feel free to add yourself to the copyright section of the Licence file
 
 ## Testing the code
+Assuming you already insalled the python environement.
+
+Just running the tests.
+```bash
+pytest
 ```
-python3 -m unittest
+
+Running the tests and generating a coverage report for it.
 ```
+pytest --cov . --cov-report html
+```
+
+Documentation for the coverage reporting https://pytest-cov.readthedocs.io/en/latest/config.html
+
 
 # Timezones
 This framework does its best to handle timezones. However there are limits, mainly because Apple does not tell us the timezones of the dates its more of a educated guess.

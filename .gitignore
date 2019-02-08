@@ -13,3 +13,6 @@ config.json
 
 venv
 .mypy_cache
+.pytest_cache
+.coverage
+htmlcov
