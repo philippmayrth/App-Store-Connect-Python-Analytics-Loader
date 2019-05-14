@@ -84,3 +84,13 @@ See also: https://forums.developer.apple.com/thread/47211
 # About Apple´s Reporter.jar
 This should also run on PC (everything with a Java runtime)
 https://help.apple.com/itc/contentreporterguide/en.lproj/static.html
+
+
+# Troubleshooting
+**Error:** ```AppStoreConnectReporterErrors.AmbiguousAccountNumber: You have access to more than one account. Please specify an account number in your properties file or on the command line. To see a list of accounts, run the command getAccounts.```
+**Solution:**
+  - Run the command ```java -jar Reporter.jar p=Reporter.properties Sales.getAccounts```
+  - You should see a list of all the accounts you have access to now
+  - Take the number/id after the comma of the account relevant to you and place it in the ```Reporter.properties``` file in the line that says ```Account=```.
+
+**Sugestion:** *If you need to import the statistics of multiple accounts you have access to you can simply deploy this ETL script into several directories each with a uniqe ```Reporter.properties``` file.*
